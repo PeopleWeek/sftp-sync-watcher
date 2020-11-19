@@ -1,0 +1,40 @@
+{
+    "payroll-master-data": {
+        "import": {
+            "scheduleTime": "RUN_EVERY_MINUTE",
+            "source": "",
+            "destination": ""
+        },
+        "export": {
+            "source": [
+                "",
+                ""
+            ],
+            "destination": ""
+        },
+        "sftp": {
+            "host": "",
+            "port": "",
+            "username": "",
+            "privateKeyPath": ""
+        },
+        "variables": {
+            "[TENANT]": ""
+        }
+    },
+    "unplanned-absences": {
+        "export": {
+            "source": "",
+            "destination": ""
+        },
+        "sftp": {
+            "host": "",
+            "port": "",
+            "username": "",
+            "privateKeyPath": ""
+        },
+        "variables": {
+            "[TENANT]": ""
+        }
+    }
+}

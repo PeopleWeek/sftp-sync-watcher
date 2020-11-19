@@ -1,0 +1,21 @@
+{
+  "name": "sftp-sync-watcher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "PeopleWeek S.A.",
+  "license": "ISC",
+  "bin": {
+    "sftp-sync-watcher": "./cli.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.4.3",
+    "file-system": "^2.2.2",
+    "node-cron": "^2.0.3",
+    "path": "^0.12.7",
+    "ssh2-sftp-client": "^5.3.1"
+  }
+}

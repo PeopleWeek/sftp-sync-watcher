@@ -1,0 +1,40 @@
+{
+    "payroll-master-data": {
+        "import": {
+            "scheduleTime": "RUN_EVERY_MINUTE",
+            "source": "FromLoyco/FOR_TEST",
+            "destination": "/Users/antonio/Documents/Projects/base/storage/tenant_[TENANT]/payroll/import/payslips"
+        },
+        "export": {
+            "source": [
+                "/Users/antonio/Documents/Projects/base/storage/tenant_[TENANT]/payroll/export/master-test-data",
+                "/Users/antonio/Documents/Projects/base/storage/tenant_[TENANT]/payroll/export/payments-test"
+            ],
+            "destination": "ToLoyco/FOR_TEST"
+        },
+        "sftp": {
+            "host": "sftp.loyco.ch",
+            "port": "22",
+            "username": "alpian_it",
+            "privateKeyPath": "alpian_intf.ppk"
+        },
+        "variables": {
+            "[TENANT]": "edifea"
+        }
+    },
+    "unplanned-absences": {
+        "export": {
+            "source": "/Users/antonio/Documents/Projects/base/storage/tenant_[TENANT]/absences/export/shared-test",
+            "destination": "ToLoyco/FOR_TEST"
+        },
+        "sftp": {
+            "host": "sftp.loyco.ch",
+            "port": "22",
+            "username": "alpian_it",
+            "privateKeyPath": "alpian_intf.ppk"
+        },
+        "variables": {
+            "[TENANT]": "edifea"
+        }
+    }
+}
