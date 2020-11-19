@@ -15,6 +15,7 @@
     "chokidar": "^3.4.3",
     "file-system": "^2.2.2",
     "node-cron": "^2.0.3",
+    "opencollective-postinstall": "^2.0.3",
     "path": "^0.12.7",
     "ssh2-sftp-client": "^5.3.1"
   }
