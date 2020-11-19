@@ -1,4 +1,4 @@
-var cron = require('node-cron');
+var schedule = require('node-schedule');
 const fs = require('file-system');
 const imported_files = require('./imported_files.json');
 
@@ -64,8 +64,7 @@ const downloadFiles = (files, source, destination, sftpConfig) => {
 
 exports.startImport = (scheduleTime, source, destination, sftpConfig, variables) => {
     const destinationPath = replaceVariablesInPath(destination, variables);
-    cron.schedule(scheduleTime, () => {
-        console.log('try');
+    schedule.scheduleJob(scheduleTime, () => {
 
         let sftp = new Client();
         sftp.connect(sftpConfig).then(() => {

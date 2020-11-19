@@ -1,4 +1,6 @@
-const fs = require('file-system');
+const [, , configFilePath, ...args] = process.argv;
+
+
 const {startImport} = require('./import/index.js');
 const {startExport} = require('./export/index.js');
 
@@ -10,7 +12,6 @@ const scheduleOptions = {
     'RUN_EVERY_DAY_AT_MIDNIGHT': '0 0 * * *'
 };
 
-const [, , configFilePath, ...args] = process.argv;
 
 const config = require(configFilePath);
 
@@ -22,7 +23,7 @@ Object.values(config).forEach(feature => {
 
         let sftpConfig = {
             ...sftp,
-            privateKey: fs.readFileSync(sftp.privateKeyPath)
+            //privateKey: fs.readFileSync(sftp.privateKeyPath)
         };
         delete sftpConfig.privateKeyPath;
 
