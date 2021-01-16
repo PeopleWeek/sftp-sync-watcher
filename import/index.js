@@ -1,8 +1,13 @@
 var schedule = require('node-schedule');
 const fs = require('file-system');
-const imported_files = require('./imported_files.json');
+//const imported_files = require('./imported_files.json');
 
 let Client = require('ssh2-sftp-client');
+
+const getImportedFiles = () => {
+    let rawdata = fs.readFileSync('./import/imported_files.json');
+    return JSON.parse(rawdata);
+}
 
 const replaceVariablesInPath = (path, variables) => {
   let replacedPath = path;
@@ -13,6 +18,7 @@ const replaceVariablesInPath = (path, variables) => {
 }
 
 const addFileToImportedFiles = (file, destination, status) => {
+    let imported_files = getImportedFiles();
     let importedFilesUpdated = {...imported_files};
     importedFilesUpdated[destination + '/' + file.name] = {
         successfully: status
@@ -78,6 +84,7 @@ exports.startImport = (scheduleTime, source, destination, sftpConfig, variables)
             }
         })
         .then((files) => {
+            let imported_files = getImportedFiles();
             if(!!files && !!files.length) {
                 let filesToDownload = files.filter(file => {
                     const key = destinationPath + '/' + file.name;
