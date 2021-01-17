@@ -31,21 +31,6 @@ const addFileToImportedFiles = (file, destination, status) => {
     });
 }
 
-
-const moveToImported = (from, to, sftpConfig) => {
-    let sftp = new Client();
-
-    sftp.connect(sftpConfig).then(() => {
-        return sftp.rename(from, to);
-    })
-    .then(res => {
-        return sftp.end();
-    })
-    .catch(err => {
-        console.error(err.message);
-    });
-}
-
 const downloadFiles = (files, source, destination, importedFolder, sftpConfig) => {
     files.forEach(file => {
           let sftp = new Client();
@@ -68,24 +53,32 @@ const downloadFiles = (files, source, destination, importedFolder, sftpConfig) =
           })
           .then((res) => {
               if(res.includes('successfully')) {
-                addFileToImportedFiles(file, destination, true);
-                if(importedFolder) {
-                    moveToImported(
-                        source + '/' + file.name,
-                        importedFolder + '/' + file.name,
-                        sftpConfig
-                    );
-                }
+                //addFileToImportedFiles(file, destination, true);
               }
               else {
-                addFileToImportedFiles(file, destination, false);
+                //addFileToImportedFiles(file, destination, false);
               }
               return sftp.end();
           })
           .catch(err => {
-              addFileToImportedFiles(file, destination, false);
+              //addFileToImportedFiles(file, destination, false);
               console.error(err.message);
           });
+          sftp = new Client();
+          if(importedFolder) {
+            sftp.connect(sftpConfig).then(() => {
+                return sftp.rename(
+                    source + '/' + file.name, 
+                    importedFolder + '/' + file.name,
+                );
+            })
+            .then(res => {
+                return sftp.end();
+            })
+            .catch(err => {
+                console.error(err.message);
+            });
+        }
     });
 }
 
