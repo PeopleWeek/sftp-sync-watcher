@@ -31,7 +31,22 @@ const addFileToImportedFiles = (file, destination, status) => {
     });
 }
 
-const downloadFiles = (files, source, destination, sftpConfig) => {
+
+const moveToImported = (from, to, sftpConfig) => {
+    let sftp = new Client();
+
+    sftp.connect(sftpConfig).then(() => {
+        return sftp.rename(from, to);
+    })
+    .then(res => {
+        return sftp.end();
+    })
+    .catch(err => {
+        console.error(err.message);
+    });
+}
+
+const downloadFiles = (files, source, destination, importedFolder, sftpConfig) => {
     files.forEach(file => {
           let sftp = new Client();
 
@@ -54,6 +69,13 @@ const downloadFiles = (files, source, destination, sftpConfig) => {
           .then((res) => {
               if(res.includes('successfully')) {
                 addFileToImportedFiles(file, destination, true);
+                if(importedFolder) {
+                    moveToImported(
+                        source + '/' + file.name,
+                        importedFolder + '/' + file.name,
+                        sftpConfig
+                    );
+                }
               }
               else {
                 addFileToImportedFiles(file, destination, false);
@@ -68,7 +90,7 @@ const downloadFiles = (files, source, destination, sftpConfig) => {
 }
 
 
-exports.startImport = (scheduleTime, source, destination, sftpConfig, variables) => {
+exports.startImport = (scheduleTime, source, destination, importedFolder, sftpConfig, variables) => {
     const destinationPath = replaceVariablesInPath(destination, variables);
     schedule.scheduleJob(scheduleTime, () => {
 
@@ -92,7 +114,7 @@ exports.startImport = (scheduleTime, source, destination, sftpConfig, variables)
                           || !imported_files[key].successfully;
                 })
                 if(!!filesToDownload && !!filesToDownload.length){
-                    downloadFiles(filesToDownload, source, destinationPath, sftpConfig);
+                    downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig);
                 }
             }
             return sftp.end();

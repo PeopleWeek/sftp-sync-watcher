@@ -19,7 +19,7 @@ const config = require(configFilePath);
 Object.values(config).forEach(feature => {
 
     if(feature.import){
-        const {scheduleTime, source, destination} = feature.import;
+        const {scheduleTime, source, destination, importedFolder} = feature.import;
         const {sftp, variables} = feature;
 
         let sftpConfig = {
@@ -32,6 +32,7 @@ Object.values(config).forEach(feature => {
             scheduleOptions.hasOwnProperty(scheduleTime) ? scheduleOptions[scheduleTime] : scheduleTime, 
             source, 
             destination,
+            importedFolder,
             sftpConfig, 
             variables
         );
