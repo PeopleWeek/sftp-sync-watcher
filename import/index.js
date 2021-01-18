@@ -99,16 +99,16 @@ exports.startImport = (scheduleTime, source, destination, importedFolder, sftpCo
             }
         })
         .then((files) => {
-            let imported_files = getImportedFiles();
+            //let imported_files = getImportedFiles();
             if(!!files && !!files.length) {
-                let filesToDownload = files.filter(file => {
-                    const key = destinationPath + '/' + file.name;
-                    return !imported_files.hasOwnProperty(key) 
-                          || !imported_files[key].successfully;
-                })
-                if(!!filesToDownload && !!filesToDownload.length){
-                    downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig);
-                }
+                downloadFiles(files, source, destinationPath, importedFolder, sftpConfig);
+                // let filesToDownload = files.filter(file => {
+                //     const key = destinationPath + '/' + file.name;
+                //     return !imported_files.hasOwnProperty(key) 
+                //           || !imported_files[key].successfully;
+                // })
+                // if(!!filesToDownload && !!filesToDownload.length){
+                // }
             }
             return sftp.end();
         })
