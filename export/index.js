@@ -66,7 +66,7 @@ exports.startExport = (source, destination, sftpConfig, variables) => {
     const watcher = chokidar.watch(path, {
         ignored: /archived/,
         persistent: true,
-        ignoreInitial: true,
+        ignoreInitial: false,
         depth: 0
     });
 

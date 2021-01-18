@@ -3,6 +3,7 @@ const fs = require('file-system');
 //const imported_files = require('./imported_files.json');
 
 let Client = require('ssh2-sftp-client');
+const sftp = require('ssh2-sftp-client');
 
 const getImportedFiles = () => {
     let rawdata = fs.readFileSync('./import/imported_files.json');
@@ -31,66 +32,75 @@ const addFileToImportedFiles = (file, destination, status) => {
     });
 }
 
-const downloadFiles = (files, source, destination, importedFolder, sftpConfig) => {
-    files.forEach(file => {
-          let sftp = new Client();
-
-          sftp.connect(sftpConfig).then(() => {
-            return sftp.exists(source + "/" + file.name);
-          })
-          .then((exists) => {
-              if(exists){
-                  if(!fs.existsSync(destination)){
-                      fs.mkdirSync(destination, { recursive: true });
-                  }
-                  return sftp.fastGet(
-                      source + '/' + file.name,
-                      destination + '/' + file.name
-                    );
-              } else {
-                  return sftp.end();
-              }
-          })
-          .then((res) => {
-              if(res.includes('successfully')) {
-                //addFileToImportedFiles(file, destination, true);
-              }
-              else {
-                //addFileToImportedFiles(file, destination, false);
-              }
-              return sftp.end();
-          })
-          .catch(err => {
-              //addFileToImportedFiles(file, destination, false);
-              console.error(err.message);
-          });
-          sftp = new Client();
-          if(importedFolder) {
-            sftp.connect(sftpConfig).then(() => {
-                return sftp.rename(
-                    source + '/' + file.name, 
-                    importedFolder + '/' + file.name,
-                );
-            })
-            .then(res => {
-                return sftp.end();
-            })
-            .catch(err => {
-                console.error(err.message);
-            });
-        }
+const moveFile = (file, source, importedFolder, sftpConfig) => {
+    let sftp = new Client();
+    return sftp.connect(sftpConfig).then(() => {
+        return sftp.rename(
+            source + '/' + file.name, 
+            importedFolder + '/' + file.name,
+        );
+    })
+    .then(res => {
+        return sftp.end();
+    })
+    .catch(err => {
+        console.error(err.message);
+        return err;
     });
 }
 
+const downloadFile = async (file, source, destination, importedFolder, sftpConfig) => {
+    let sftp = new Client();
 
-exports.startImport = (scheduleTime, source, destination, importedFolder, sftpConfig, variables) => {
-    const destinationPath = replaceVariablesInPath(destination, variables);
-    let filesToDownload = [];
+    return sftp.connect(sftpConfig).then(() => {
+        return sftp.exists(source + "/" + file.name);
+    })
+    .then((exists) => {
+        if(exists){
+            if(!fs.existsSync(destination)){
+                fs.mkdirSync(destination, { recursive: true });
+            }
+            return sftp.fastGet(
+                source + '/' + file.name,
+                destination + '/' + file.name
+                );
+        } else {
+            return sftp.end();
+        }
+    })
+    .then(async (res) => {
+        if(res.includes('successfully')) {
+            //addFileToImportedFiles(file, destination, true);
+            if(importedFolder)
+            {
+                await moveFile(file, source, importedFolder, sftpConfig);
+            }
+        }
+        else {
+            //addFileToImportedFiles(file, destination, false);
+        }
+        return sftp.end();
+    })
+    .catch(err => {
+        //addFileToImportedFiles(file, destination, false);
+        console.error(err.message);
+    });
+}
 
-    schedule.scheduleJob(scheduleTime, () => {
+const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig) => {
+    files.forEach(async (file, index) => {
+        await downloadFile(file, source, destination, importedFolder, sftpConfig);
+    });
+});
 
+
+exports.startImport = (async (scheduleTime, source, destination, importedFolder, sftpConfig, variables) => {
+    schedule.scheduleJob(scheduleTime, async () => {
+        const destinationPath = replaceVariablesInPath(destination, variables);
+        let filesToDownload = [];
+        
         let sftp = new Client();
-        sftp.connect(sftpConfig).then(() => {
+        await sftp.connect(sftpConfig).then(() => {
           return sftp.exists(source);
         })
         .then((exists) => {
@@ -101,9 +111,7 @@ exports.startImport = (scheduleTime, source, destination, importedFolder, sftpCo
             }
         })
         .then((files) => {
-            if(!!files && !!files.length) {
-                filesToDownload = files;
-            }
+            filesToDownload = files;
             return sftp.end();
         })
         .catch(err => {
@@ -114,4 +122,4 @@ exports.startImport = (scheduleTime, source, destination, importedFolder, sftpCo
             downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig);
         }
     });
-}
+});
