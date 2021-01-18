@@ -85,6 +85,8 @@ const downloadFiles = (files, source, destination, importedFolder, sftpConfig) =
 
 exports.startImport = (scheduleTime, source, destination, importedFolder, sftpConfig, variables) => {
     const destinationPath = replaceVariablesInPath(destination, variables);
+    let filesToDownload = [];
+
     schedule.scheduleJob(scheduleTime, () => {
 
         let sftp = new Client();
@@ -99,21 +101,17 @@ exports.startImport = (scheduleTime, source, destination, importedFolder, sftpCo
             }
         })
         .then((files) => {
-            //let imported_files = getImportedFiles();
             if(!!files && !!files.length) {
-                downloadFiles(files, source, destinationPath, importedFolder, sftpConfig);
-                // let filesToDownload = files.filter(file => {
-                //     const key = destinationPath + '/' + file.name;
-                //     return !imported_files.hasOwnProperty(key) 
-                //           || !imported_files[key].successfully;
-                // })
-                // if(!!filesToDownload && !!filesToDownload.length){
-                // }
+                filesToDownload = files;
             }
             return sftp.end();
         })
         .catch(err => {
             console.error(err.message);
         });
+
+        if(!!filesToDownload && !!filesToDownload.length) {
+            downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig);
+        }
     });
 }
