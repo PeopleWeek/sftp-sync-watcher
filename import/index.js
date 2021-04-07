@@ -5,6 +5,14 @@ const fs = require('file-system');
 let Client = require('ssh2-sftp-client');
 const sftp = require('ssh2-sftp-client');
 
+const delay = (t) => {
+    return new Promise(function(resolve) {
+        setTimeout(function() {
+            resolve(true);
+        }, t);
+    });
+}
+
 const getImportedFiles = () => {
     let rawdata = fs.readFileSync('./import/imported_files.json');
     return JSON.parse(rawdata);
@@ -73,6 +81,7 @@ const downloadFile = async (file, source, destination, importedFolder, sftpConfi
             //addFileToImportedFiles(file, destination, true);
             if(importedFolder)
             {
+                await delay(2000);
                 await moveFile(file, source, importedFolder, sftpConfig);
             }
         }
@@ -88,9 +97,11 @@ const downloadFile = async (file, source, destination, importedFolder, sftpConfi
 }
 
 const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig) => {
-    files.forEach(async (file, index) => {
+    //files.forEach(async (file, index) => {
+    for (const file of files) {
         await downloadFile(file, source, destination, importedFolder, sftpConfig);
-    });
+        await delay(2000);
+    };
 });
 
 

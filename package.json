@@ -1,6 +1,6 @@
 {
   "name": "sftp-sync-watcher",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "",
   "main": "cli.js",
   "scripts": {
