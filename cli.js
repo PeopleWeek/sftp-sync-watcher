@@ -24,7 +24,7 @@ Object.values(config).forEach(feature => {
 
         let sftpConfig = {
             ...sftp,
-            privateKey: fs.readFileSync(sftp.privateKeyPath)
+            privateKey: sftp.privateKeyPath ? fs.readFileSync(sftp.privateKeyPath) : null
         };
         delete sftpConfig.privateKeyPath;
 
