@@ -19,8 +19,8 @@ const config = require(configFilePath);
 Object.values(config).forEach(feature => {
 
     if(feature.import){
-        const {scheduleTime, source, destination, importedFolder} = feature.import;
-        const {sftp, variables, filesToIgnore} = feature;
+        const {scheduleTime, source, destination, importedFolder, filesToIgnore} = feature.import;
+        const {sftp, variables} = feature;
 
         let sftpConfig = {
             ...sftp,
