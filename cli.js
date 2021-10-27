@@ -20,13 +20,15 @@ Object.values(config).forEach(feature => {
 
     if(feature.import){
         const {scheduleTime, source, destination, importedFolder} = feature.import;
-        const {sftp, variables} = feature;
+        const {sftp, variables, filesToIgnore} = feature;
 
         let sftpConfig = {
             ...sftp,
             privateKey: sftp.privateKeyPath ? fs.readFileSync(sftp.privateKeyPath) : null
         };
         delete sftpConfig.privateKeyPath;
+        
+        let ignoreFiles = filesToIgnore ? filesToIgnore : [];
 
         startImport(
             scheduleOptions.hasOwnProperty(scheduleTime) ? scheduleOptions[scheduleTime] : scheduleTime, 
@@ -34,7 +36,8 @@ Object.values(config).forEach(feature => {
             destination,
             importedFolder,
             sftpConfig, 
-            variables
+            variables,
+            ignoreFiles
         );
     }
     

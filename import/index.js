@@ -96,16 +96,18 @@ const downloadFile = async (file, source, destination, importedFolder, sftpConfi
     });
 }
 
-const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig) => {
+const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig, ignoreFiles) => {
     //files.forEach(async (file, index) => {
     for (const file of files) {
-        await downloadFile(file, source, destination, importedFolder, sftpConfig);
-        await delay(2000);
+        if(!filesToIgnore.includes(file.name)) {
+            await downloadFile(file, source, destination, importedFolder, sftpConfig);
+            await delay(2000);
+        }
     };
 });
 
 
-exports.startImport = (async (scheduleTime, source, destination, importedFolder, sftpConfig, variables) => {
+exports.startImport = (async (scheduleTime, source, destination, importedFolder, sftpConfig, variables, ignoreFiles) => {
     schedule.scheduleJob(scheduleTime, async () => {
         const destinationPath = replaceVariablesInPath(destination, variables);
         let filesToDownload = [];
@@ -130,7 +132,7 @@ exports.startImport = (async (scheduleTime, source, destination, importedFolder,
         });
 
         if(!!filesToDownload && !!filesToDownload.length) {
-            downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig);
+            downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig, ignoreFiles);
         }
     });
 });
