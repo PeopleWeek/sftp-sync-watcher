@@ -99,7 +99,7 @@ const downloadFile = async (file, source, destination, importedFolder, sftpConfi
 const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig, ignoreFiles) => {
     //files.forEach(async (file, index) => {
     for (const file of files) {
-        if(!filesToIgnore.includes(file.name)) {
+        if(!ignoreFiles.includes(file.name)) {
             await downloadFile(file, source, destination, importedFolder, sftpConfig);
             await delay(2000);
         }
