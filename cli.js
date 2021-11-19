@@ -8,6 +8,7 @@ const [, , configFilePath, ...args] = process.argv;
 
 const scheduleOptions = {
     'RUN_EVERY_MINUTE': '* * * * *',
+    'RUN_EVERY_FIVE_MINUTES': '*/5 * * * *',
     'RUN_EVERY_HOUR': '0 * * * *',
     'RUN_EVERY_TWO_HOURS': '0 */2 * * *',
     'RUN_EVERY_DAY_AT_MIDNIGHT': '0 0 * * *'

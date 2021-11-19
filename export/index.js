@@ -67,6 +67,8 @@ exports.startExport = (source, destination, sftpConfig, variables) => {
         ignored: /archived/,
         persistent: true,
         ignoreInitial: false,
+        awaitWriteFinish: true,
+        followSymlinks: false,
         depth: 0
     });
 
