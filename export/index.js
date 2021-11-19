@@ -68,8 +68,9 @@ exports.startExport = (source, destination, sftpConfig, variables) => {
         persistent: true,
         ignoreInitial: false,
         awaitWriteFinish: true,
-        followSymlinks: true,
         usePolling: true,
+        interval: 2000,
+        binaryInterval: 3000,
         depth: 0
     });
 
