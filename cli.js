@@ -29,7 +29,7 @@ Object.values(config).forEach(feature => {
         };
         delete sftpConfig.privateKeyPath;
         
-        let ignoreFiles = filesToIgnore ? filesToIgnore : [];
+        let ignoreFiles = filesToIgnore ? filesToIgnore : ['imported'];
 
         startImport(
             scheduleOptions.hasOwnProperty(scheduleTime) ? scheduleOptions[scheduleTime] : scheduleTime, 
@@ -43,7 +43,7 @@ Object.values(config).forEach(feature => {
     }
     
     if(feature.export){
-        const {source, destination} = feature.export;
+        const {source, destination, filesToIgnore} = feature.export;
         const {sftp, variables} = feature;
 
         let sftpConfig = {
@@ -56,7 +56,8 @@ Object.values(config).forEach(feature => {
             source, 
             destination,
             sftpConfig,
-            variables
+            variables,
+            filesToIgnore ? filesToIgnore : ['archived', 'deleted']
         );
     }
 })

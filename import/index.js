@@ -13,10 +13,6 @@ const delay = (t) => {
     });
 }
 
-const getImportedFiles = () => {
-    let rawdata = fs.readFileSync('./import/imported_files.json');
-    return JSON.parse(rawdata);
-}
 
 const replaceVariablesInPath = (path, variables) => {
   let replacedPath = path;
@@ -26,84 +22,102 @@ const replaceVariablesInPath = (path, variables) => {
   return replacedPath;
 }
 
-const addFileToImportedFiles = (file, destination, status) => {
-    let imported_files = getImportedFiles();
-    let importedFilesUpdated = {...imported_files};
-    importedFilesUpdated[destination + '/' + file.name] = {
-        successfully: status
-    };
 
-    fs.writeFile('./import/imported_files.json', 
-        JSON.stringify(importedFilesUpdated), 
-        (err) => {
-          if (err) return console.log(err);
-    });
-}
+// const moveFile = (file, source, importedFolder, sftpConfig) => {
+//     let sftp = new Client();
+//     return sftp.connect(sftpConfig).then(() => {
+//         return sftp.rename(
+//             source + '/' + file.name, 
+//             importedFolder + '/' + file.name,
+//         );
+//     })
+//     .then(res => {
+//         return sftp.end();
+//     })
+//     .catch(err => {
+//         console.error(err.message);
+//         return err;
+//     });
+// }
 
-const moveFile = (file, source, importedFolder, sftpConfig) => {
+// const downloadFile = async (file, source, destination, importedFolder, sftpConfig) => {
+//     let sftp = new Client();
+
+//     return sftp.connect(sftpConfig).then(() => {
+//         return sftp.exists(source + "/" + file.name);
+//     })
+//     .then((exists) => {
+//         if(exists){
+//             if(!fs.existsSync(destination)){
+//                 fs.mkdirSync(destination, { recursive: true });
+//             }
+//             return sftp.fastGet(
+//                 source + '/' + file.name,
+//                 destination + '/' + file.name
+//                 );
+//         } else {
+//             return sftp.end();
+//         }
+//     })
+//     .then(async (res) => {
+//         if(res.includes('successfully')) {
+//             //addFileToImportedFiles(file, destination, true);
+//             if(importedFolder)
+//             {
+//                 await delay(2000);
+//                 await moveFile(file, source, importedFolder, sftpConfig);
+//             }
+//         }
+//         else {
+//             //addFileToImportedFiles(file, destination, false);
+//         }
+//         return sftp.end();
+//     })
+//     .catch(err => {
+//         //addFileToImportedFiles(file, destination, false);
+//         console.error(err.message);
+//     });
+// }
+
+// const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig, ignoreFiles) => {
+//     //files.forEach(async (file, index) => {
+//     for (const file of files) {
+//         if(!ignoreFiles.includes(file.name)) {
+//             await downloadFile(file, source, destination, importedFolder, sftpConfig);
+//             await delay(2000);
+//         }
+//     };
+// });
+
+
+const downloadAll = (async (files, source, destination, importedFolder, sftpConfig, ignoreFiles) => {
     let sftp = new Client();
-    return sftp.connect(sftpConfig).then(() => {
-        return sftp.rename(
-            source + '/' + file.name, 
-            importedFolder + '/' + file.name,
-        );
-    })
-    .then(res => {
-        return sftp.end();
-    })
-    .catch(err => {
-        console.error(err.message);
-        return err;
-    });
-}
+    
+    if(!fs.existsSync(destination)){
+        fs.mkdirSync(destination, { recursive: true });
+    }
 
-const downloadFile = async (file, source, destination, importedFolder, sftpConfig) => {
-    let sftp = new Client();
-
-    return sftp.connect(sftpConfig).then(() => {
-        return sftp.exists(source + "/" + file.name);
-    })
-    .then((exists) => {
-        if(exists){
-            if(!fs.existsSync(destination)){
-                fs.mkdirSync(destination, { recursive: true });
-            }
-            return sftp.fastGet(
-                source + '/' + file.name,
-                destination + '/' + file.name
+    return new Promise((resolve, reject) => {
+        sftp.connect(sftpConfig).then(()=>{
+            return Promise.all(files.map(file => {
+                return sftp.fastGet(
+                    source + '/' + file.name,
+                    destination + '/' + file.name
+                    );
+              }));
+        })
+        .then(()=>{
+            return Promise.all(files.map(file => {
+                return sftp.rename(
+                    source + '/' + file.name, 
+                    importedFolder + '/' + file.name,
                 );
-        } else {
-            return sftp.end();
-        }
-    })
-    .then(async (res) => {
-        if(res.includes('successfully')) {
-            //addFileToImportedFiles(file, destination, true);
-            if(importedFolder)
-            {
-                await delay(2000);
-                await moveFile(file, source, importedFolder, sftpConfig);
-            }
-        }
-        else {
-            //addFileToImportedFiles(file, destination, false);
-        }
-        return sftp.end();
-    })
-    .catch(err => {
-        //addFileToImportedFiles(file, destination, false);
-        console.error(err.message);
+            }));
+        })
+        .then(()=>sftp.end())
+        .then(resolve)
+        .catch(reject)
     });
-}
-
-const downloadFiles = (async (files, source, destination, importedFolder, sftpConfig, ignoreFiles) => {
-    //files.forEach(async (file, index) => {
-    for (const file of files) {
-        if(!ignoreFiles.includes(file.name)) {
-            await downloadFile(file, source, destination, importedFolder, sftpConfig);
-            await delay(2000);
-        }
-    };
 });
 
 
@@ -124,7 +138,7 @@ exports.startImport = (async (scheduleTime, source, destination, importedFolder,
             }
         })
         .then((files) => {
-            filesToDownload = files;
+            filesToDownload = files && files.length ? files.filter(f => !ignoreFiles.includes(f.name) && f.type !== 'd') : [];
             return sftp.end();
         })
         .catch(err => {
@@ -132,7 +146,7 @@ exports.startImport = (async (scheduleTime, source, destination, importedFolder,
         });
 
         if(!!filesToDownload && !!filesToDownload.length) {
-            downloadFiles(filesToDownload, source, destinationPath, importedFolder, sftpConfig, ignoreFiles);
+            downloadAll(filesToDownload, source, destinationPath, importedFolder, sftpConfig, ignoreFiles);
         }
     });
 });

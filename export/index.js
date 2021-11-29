@@ -1,4 +1,4 @@
-const chokidar = require('chokidar');
+var schedule = require('node-schedule');
 const fs = require('file-system');
 const path = require('path');
 
@@ -13,8 +13,7 @@ const replaceVariablesInPath = (path, variables) => {
     return replacedPath;
 }
 
-const fileIsAdded = (filePath, destination, sftpConfig) => {
-
+const uploadFiles = (files, destination, sftpConfig) => {
     let sftp = new Client();
     
     sftp.connect(sftpConfig).then(() => {
@@ -22,21 +21,24 @@ const fileIsAdded = (filePath, destination, sftpConfig) => {
     })
     .then((exists) => {
         if(exists){
-            const localFile = fs.createReadStream(filePath);
-            const remoteFile = destination + "/" +  path.basename(filePath);
-
-            return sftp.put(localFile, remoteFile);
+            return Promise.all(files.map(file => {
+                const localFile = fs.createReadStream(file);
+                const remoteFile = destination + "/" +  path.basename(file);
+                return sftp.put(localFile, remoteFile);
+              }));
         } else {
             return sftp.end();
         }
     })
     .then((result) => {
-        if(result.includes('Uploaded data stream')){
-            const archivePath = path.dirname(filePath) + '/archived';
-            if(!fs.existsSync(archivePath)){
-                fs.mkdirSync(archivePath);
-            }
-            fs.renameSync(filePath, archivePath + "/" + path.basename(filePath))
+        if(result.includes('Uploaded data stream') || result[0].includes('Uploaded data stream')){
+            files.forEach((file) => {
+                const archivePath = path.dirname(file) + '/archived';
+                if(!fs.existsSync(archivePath)){
+                    fs.mkdirSync(archivePath);
+                }
+                fs.renameSync(file, archivePath + "/" + path.basename(file));
+            });
         }
         return sftp.end();
     })
@@ -45,32 +47,37 @@ const fileIsAdded = (filePath, destination, sftpConfig) => {
     });
 }
 
-exports.startExport = (source, destination, sftpConfig, variables) => {
-    let path = null;
-    if(Array.isArray(source)){
-        path = source.map(s => {
-            const resultPath = replaceVariablesInPath(s, variables);
-            if(!fs.existsSync(resultPath)){
-                fs.mkdirSync(resultPath, { recursive: true });
+
+exports.startExport = (source, destination, sftpConfig, variables, ignoreFiles) => {
+    schedule.scheduleJob('*/2 * * * *', async () => {
+        let path = null;
+        if(Array.isArray(source)){
+            path = source.map(s => {
+                const resultPath = replaceVariablesInPath(s, variables);
+                if(!fs.existsSync(resultPath)){
+                    fs.mkdirSync(resultPath, { recursive: true });
+                }
+                return resultPath;
+            });
+        } else {
+            path = replaceVariablesInPath(source, variables);
+            if(!fs.existsSync(path)){
+                fs.mkdirSync(path, { recursive: true });
             }
-            return resultPath;
-        });
-    } else {
-        path = replaceVariablesInPath(source, variables);
-        if(!fs.existsSync(path)){
-            fs.mkdirSync(path, { recursive: true });
+            path = [path];
         }
-    }
-    
 
-    const watcher = chokidar.watch(path, {
-        ignored: /archived/,
-        persistent: true,
-        ignoreInitial: false,
-        awaitWriteFinish: true,
-        depth: 0
+        files = [];
+        path.forEach((p) => {
+            fs.readdirSync(p).forEach(file => {
+                if(!ignoreFiles.includes(file.toLowerCase())) {
+                    files.push(p + '/' + file);
+                }
+            });
+        })
+        if(files && files.length) {
+            uploadFiles(files, destination, sftpConfig);
+        }
+        
     });
-
-    watcher
-        .on('add', filePath => fileIsAdded(filePath, destination, sftpConfig));
 }
