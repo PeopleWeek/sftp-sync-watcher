@@ -48,8 +48,8 @@ const uploadFiles = (files, destination, sftpConfig) => {
 }
 
 
-exports.startExport = (source, destination, sftpConfig, variables, ignoreFiles) => {
-    schedule.scheduleJob('*/15 * * * *', async () => {
+exports.startExport = (scheduleTime, source, destination, sftpConfig, variables, ignoreFiles) => {
+    schedule.scheduleJob(scheduleTime, async () => {
         let path = null;
         if(Array.isArray(source)){
             path = source.map(s => {

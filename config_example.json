@@ -6,6 +6,7 @@
             "destination": ""
         },
         "export": {
+            "scheduleTime" : "RUN_EVERY_FIFTEEN_MINUTES",
             "source": [
                 "",
                 ""

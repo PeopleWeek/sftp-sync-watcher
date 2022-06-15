@@ -9,6 +9,8 @@ const [, , configFilePath, ...args] = process.argv;
 const scheduleOptions = {
     'RUN_EVERY_MINUTE': '* * * * *',
     'RUN_EVERY_FIVE_MINUTES': '*/5 * * * *',
+    'RUN_EVERY_FIFTEEN_MINUTES': '*/15 * * * *',
+    'RUN_EVERY_HALF_AN_HOUR': '*/30 * * * *',
     'RUN_EVERY_HOUR': '0 * * * *',
     'RUN_EVERY_TWO_HOURS': '0 */2 * * *',
     'RUN_EVERY_DAY_AT_MIDNIGHT': '0 0 * * *'
@@ -43,7 +45,7 @@ Object.values(config).forEach(feature => {
     }
     
     if(feature.export){
-        const {source, destination, filesToIgnore} = feature.export;
+        const {scheduleTime, source, destination, filesToIgnore} = feature.export;
         const {sftp, variables} = feature;
 
         let sftpConfig = {
@@ -53,6 +55,7 @@ Object.values(config).forEach(feature => {
         delete sftpConfig.privateKeyPath;
         
         startExport(
+            scheduleTime ? scheduleTime : scheduleOptions.RUN_EVERY_FIFTEEN_MINUTES,
             source, 
             destination,
             sftpConfig,
